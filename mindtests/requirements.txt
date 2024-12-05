@@ -7,7 +7,7 @@ django-async-test==0.2.2
 django-cors-headers==4.3.1
 django-extensions==3.2.3
 django-filter==23.5
-djangorestframework==3.14.0
+djangorestframework==3.15.2
 grpcio==1.60.1
 grpcio-tools==1.60.1
 proto-plus==1.23.0
