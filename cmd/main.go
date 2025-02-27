@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"house-scanner-backend/config"
-	"house-scanner-backend/handlers"
+	"house-scanner-backend/internal/handlers"
 
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"

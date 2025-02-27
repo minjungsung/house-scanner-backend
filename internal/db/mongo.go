@@ -2,20 +2,22 @@ package db
 
 import (
 	"context"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 	"log"
+	"time"
+
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func ConnectMongo(dsn string) (*mongo.Client, error) {
-	clientOptions := options.Client().ApplyURI(dsn)
-	client, err := mongo.Connect(context.TODO(), clientOptions)
+func InsertDataToMongo(client *mongo.Client, database, collection string, data interface{}) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	coll := client.Database(database).Collection(collection)
+	_, err := coll.InsertOne(ctx, data)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	if err := client.Ping(context.TODO(), nil); err != nil {
-		return nil, err
-	}
-	log.Println("Connected to MongoDB")
-	return client, nil
-} 
+
+	log.Println("✅ Data inserted into MongoDB")
+	return nil
+}
