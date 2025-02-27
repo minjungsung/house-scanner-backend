@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 
+	"context"
 	"house-scanner-backend/config"
 	"house-scanner-backend/internal/handlers"
 
@@ -18,8 +19,6 @@ func main() {
 	cfg := config.LoadConfig()
 
 	// ✅ Supabase 클라이언트 초기화
-	log.Printf("Supabase URL: %s", cfg.SupabaseURL)
-	log.Printf("Supabase Key: %s", cfg.SupabaseKey)
 	supabaseClient := config.GetSupabaseClient()
 	if supabaseClient == nil {
 		log.Fatalf("Supabase client initialization error")
@@ -30,7 +29,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("MongoDB connection error: %v", err)
 	}
-	defer mongoClient.Disconnect(nil)
+	defer mongoClient.Disconnect(context.TODO())
 
 	// ✅ HTTP 요청 처리
 	router := mux.NewRouter()

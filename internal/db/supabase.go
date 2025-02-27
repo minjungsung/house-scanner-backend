@@ -3,7 +3,6 @@ package db
 import (
 	"log"
 
-	"github.com/joho/godotenv"
 	"github.com/supabase-community/supabase-go"
 )
 
@@ -17,11 +16,4 @@ func InsertDataToSupabase(client *supabase.Client, table string, data interface{
 
 	log.Println("✅ Data inserted into Supabase")
 	return nil
-}
-
-func init() {
-	// Load environment variables from .env file
-	if err := godotenv.Load(); err != nil {
-		log.Println("No .env file found")
-	}
 }
