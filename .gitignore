@@ -24,7 +24,6 @@ vendor/
 
 # IDE and editor specific files
 .idea/
-.vscode/
 *.swp
 *~
 
@@ -39,3 +38,6 @@ Thumbs.db
 
 # Environment variable files
 .env
+
+# Debug binary files
+**/__debug_bin*
