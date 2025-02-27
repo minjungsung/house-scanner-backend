@@ -5,43 +5,53 @@ import (
 	"net/http"
 
 	"house-scanner-backend/config"
+	"house-scanner-backend/handlers"
 
+	"github.com/gorilla/mux"
 	"github.com/rs/cors"
+	"github.com/supabase-community/supabase-go"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func handler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(`{"message": "Hello from Minjung backend!"}`))
-}
-
 func main() {
-	// 환경 설정 로드
+	// ✅ 환경 설정 로드
 	cfg := config.LoadConfig()
 
-	// PostgreSQL 연결 확인
-	if err := config.CheckPostgresConnection(cfg.PostgresDSN); err != nil {
-		log.Fatalf("PostgreSQL connection error: %v", err)
+	// ✅ Supabase 클라이언트 초기화
+	log.Printf("Supabase URL: %s", cfg.SupabaseURL)
+	log.Printf("Supabase Key: %s", cfg.SupabaseKey)
+	supabaseClient := config.GetSupabaseClient()
+	if supabaseClient == nil {
+		log.Fatalf("Supabase client initialization error")
 	}
 
-	// MongoDB 연결 확인
-	if err := config.CheckMongoConnection(cfg.MongoDSN); err != nil {
+	// ✅ MongoDB 연결
+	mongoClient, err := config.GetMongoClient(cfg.MongoDSN)
+	if err != nil {
 		log.Fatalf("MongoDB connection error: %v", err)
 	}
+	defer mongoClient.Disconnect(nil)
 
-	// HTTP 요청 처리
-	mux := http.NewServeMux()
-	mux.HandleFunc("/api/data", handler)
+	// ✅ HTTP 요청 처리
+	router := mux.NewRouter()
 
-	// CORS 설정 추가
+	// Register routes
+	registerRoutes(router, supabaseClient, mongoClient)
+
+	// ✅ CORS 설정 추가
 	corsHandler := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:5173"}, // React 프론트엔드 주소 허용
+		AllowedOrigins:   []string{"*"}, // Allow all origins
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Content-Type"},
 		AllowCredentials: true,
-	}).Handler(mux)
+	}).Handler(router)
 
-	// 서버 시작
-	log.Printf("Starting server on %s", cfg.ServerAddress)
+	// ✅ 서버 시작
+	log.Printf("🚀 Starting server on %s", cfg.ServerAddress)
 	log.Fatal(http.ListenAndServe(cfg.ServerAddress, corsHandler))
+}
+
+func registerRoutes(router *mux.Router, supabaseClient *supabase.Client, mongoClient *mongo.Client) {
+	router.HandleFunc("/api/register", handlers.RegisterUser(supabaseClient, mongoClient)).Methods("POST")
+	// Add more routes here as needed
 }
