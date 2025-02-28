@@ -1,11 +1,34 @@
 package models
 
+import (
+	"database/sql/driver"
+	"encoding/json"
+	"errors"
+)
+
+type StringArray []string
+
+func (a StringArray) Value() (driver.Value, error) {
+	return json.Marshal(a)
+}
+
+func (a *StringArray) Scan(value interface{}) error {
+	if value == nil {
+		*a = nil
+		return nil
+	}
+	bytes, ok := value.([]byte)
+	if !ok {
+		return errors.New("type assertion to []byte failed")
+	}
+	return json.Unmarshal(bytes, a)
+}
+
 type User struct {
-	Name           string   `bson:"name"`
-	Phone          string   `bson:"phone"`
-	Email          string   `bson:"email"`
-	Address        string   `bson:"address"`
-	AddressDetail  string   `bson:"addressDetail"`
-	Message        string   `bson:"message"`
-	ReferralSource []string `bson:"referralSource"`
+	Name           string   `gorm:"column:name"`
+	Phone          string   `gorm:"column:phone"`
+	Email          string   `gorm:"column:email"`
+	Address        string   `gorm:"column:address"`
+	AddressDetail  string   `gorm:"column:address_detail"`
+	Message        string   `gorm:"column:message"`
 }
