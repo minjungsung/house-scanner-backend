@@ -1,21 +1,34 @@
 package handlers
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 
 	"house-scanner-backend/internal/db"
 	"house-scanner-backend/internal/models"
 
-	"github.com/supabase-community/supabase-go"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func RegisterUser(supabaseClient *supabase.Client, mongoClient *mongo.Client) http.HandlerFunc {
+func RegisterUser(mongoClient *mongo.Client) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Println("Received request to register user")
+
+		// Log the raw request body
+		body, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			log.Println("Error reading request body:", err)
+			http.Error(w, "Invalid request payload", http.StatusBadRequest)
+			return
+		}
+		log.Printf("Raw request body: %s\n", body)
+
+		// Reset the request body for decoding
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(body))
 
 		var user models.User
 		if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
@@ -27,24 +40,15 @@ func RegisterUser(supabaseClient *supabase.Client, mongoClient *mongo.Client) ht
 		log.Printf("Decoded user data: %+v\n", user)
 
 		// Validate input
-		if user.FirstName == "" || user.LastName == "" || user.Email == "" {
+		if user.Name == "" || user.Phone == "" || user.Email == "" || user.Address == "" || user.Message == "" || len(user.ReferralSource) == 0 {
 			log.Println("Missing required fields")
 			http.Error(w, "Missing required fields", http.StatusBadRequest)
 			return
 		}
 
-		// Insert into Supabase
-		log.Println("Inserting user into Supabase")
-		if err := db.InsertDataToSupabase(supabaseClient, "users", user); err != nil {
-			log.Printf("Supabase error: %v\n", err)
-			http.Error(w, fmt.Sprintf("Supabase error: %v", err), http.StatusInternalServerError)
-			return
-		}
-		log.Println("Successfully inserted user into Supabase")
-
 		// Insert into MongoDB
 		log.Println("Inserting user into MongoDB")
-		if err := db.InsertDataToMongo(mongoClient, "house_scanner", "users", user); err != nil {
+		if err := db.InsertOneToMongo(mongoClient, "house_scanner", "users", user); err != nil {
 			log.Printf("MongoDB error: %v\n", err)
 			http.Error(w, fmt.Sprintf("MongoDB error: %v", err), http.StatusInternalServerError)
 			return

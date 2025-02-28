@@ -6,9 +6,10 @@ import (
 	"os"
 	"time"
 
+	"github.com/joho/godotenv"
+	"github.com/supabase-community/supabase-go"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"github.com/supabase-community/supabase-go"
 )
 
 type Config struct {
@@ -19,7 +20,6 @@ type Config struct {
 	SupabaseKey   string
 }
 
-
 func LoadConfig() *Config {
 	return &Config{
 		ServerAddress: getEnv("SERVER_ADDRESS", ":8080"),
@@ -27,6 +27,16 @@ func LoadConfig() *Config {
 		MongoDSN:      getEnv("MONGO_DSN", "mongodb+srv://<username>:<password>@cluster0.mongodb.net/<dbname>?retryWrites=true&w=majority"),
 		SupabaseURL:   getEnv("SUPABASE_API_URL", "https://your-supabase-url.supabase.co"),
 		SupabaseKey:   getEnv("SUPABASE_KEY", "your-supabase-api-key"),
+	}
+}
+
+
+func init() {
+	if os.Getenv("ENV") == "DEVELOPMENT" {
+		err := godotenv.Load()
+		if err != nil {
+			log.Println("Error loading .env file")
+		}
 	}
 }
 

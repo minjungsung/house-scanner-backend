@@ -1,9 +1,11 @@
 package models
 
 type User struct {
-	ID        string `json:"id,omitempty"`
-	FirstName string `json:"first_name"`
-	LastName  string `json:"last_name"`
-	Email     string `json:"email"`
-	CreatedAt string `json:"created_at,omitempty"` // Optional if auto-generated
+	Name           string   `json:"name"`
+	Phone          string   `json:"phone"`
+	Email          string   `json:"email"`
+	Address        string   `json:"address"`
+	Message        string   `json:"message"`
+	ReferralSource []string `json:"referralSource"`
+	CreatedAt      string   `json:"created_at,omitempty"`
 }

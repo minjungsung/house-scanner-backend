@@ -51,6 +51,6 @@ func main() {
 }
 
 func registerRoutes(router *mux.Router, supabaseClient *supabase.Client, mongoClient *mongo.Client) {
-	router.HandleFunc("/api/register", handlers.RegisterUser(supabaseClient, mongoClient)).Methods("POST")
+	router.HandleFunc("/api/register-user", handlers.RegisterUser(mongoClient)).Methods("POST")
 	// Add more routes here as needed
 }
