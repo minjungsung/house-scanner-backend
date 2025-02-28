@@ -1,11 +1,12 @@
 package models
 
 type User struct {
-	Name           string   `json:"name"`
-	Phone          string   `json:"phone"`
-	Email          string   `json:"email"`
-	Address        string   `json:"address"`
-	Message        string   `json:"message"`
-	ReferralSource []string `json:"referralSource"`
-	CreatedAt      string   `json:"created_at,omitempty"`
+	Name           string   `bson:"name"`
+	Phone          string   `bson:"phone"`
+	Email          string   `bson:"email"`
+	Address        string   `bson:"address"`
+	AddressDetail  string   `bson:"addressDetail"`
+	Message        string   `bson:"message"`
+	ReferralSource []string `bson:"referralSource"`
+	CreatedAt      string   `bson:"createdAt,omitempty"`
 }
