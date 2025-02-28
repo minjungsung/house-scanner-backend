@@ -8,5 +8,4 @@ type User struct {
 	AddressDetail  string   `bson:"addressDetail"`
 	Message        string   `bson:"message"`
 	ReferralSource []string `bson:"referralSource"`
-	CreatedAt      string   `bson:"createdAt,omitempty"`
 }
