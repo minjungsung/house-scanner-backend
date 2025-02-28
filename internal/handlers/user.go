@@ -6,11 +6,12 @@ import (
 	"house-scanner-backend/internal/repositories"
 	"house-scanner-backend/internal/services"
 
-	"github.com/gofiber/fiber/v2"
 	"log"
+
+	"github.com/gofiber/fiber/v2"
 )
 
-func RegisterUserHandler(c *fiber.Ctx) error {
+func RegisterUser(c *fiber.Ctx) error {
 	user := new(models.User)
 	if err := c.BodyParser(user); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Cannot parse JSON"})
@@ -25,7 +26,7 @@ func RegisterUserHandler(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{"message": "User registered successfully"})
 }
 
-func GetUserByEmailHandler(c *fiber.Ctx) error {
+func GetUserByEmail(c *fiber.Ctx) error {
 	email := c.Params("email")
 
 	userService := services.NewUserService(repositories.NewUserRepository(db.GetPostgresDB()))
