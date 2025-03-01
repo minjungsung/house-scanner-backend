@@ -5,6 +5,7 @@ import (
 	"house-scanner-backend/routes"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 )
 
 func main() {
@@ -12,6 +13,11 @@ func main() {
 	db.GetMongoDB()    // MongoDB 연결
 
 	app := fiber.New()
+	app.Use(cors.New(cors.Config{
+        AllowOrigins: "*", // Allow all origins
+		AllowHeaders: "Origin, Content-Type, Accept, Authorization",
+		AllowMethods: "GET, POST, PUT, DELETE",
+	}))
 	routes.SetupRoutes(app)
 
 	app.Listen(":8080")

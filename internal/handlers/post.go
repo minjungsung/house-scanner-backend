@@ -37,7 +37,13 @@ func GetPosts(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to retrieve posts"})
 	}
 
-	return c.JSON(posts)
+	// Convert each post to PostResponse
+	var postResponses []models.PostResponse
+	for _, post := range posts {
+		postResponses = append(postResponses, *post.ToResponse())
+	}
+
+	return c.JSON(postResponses)
 }
 
 func GetPost(c *fiber.Ctx) error {
@@ -52,7 +58,7 @@ func GetPost(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Post not found"})
 	}
 
-	return c.JSON(post)
+	return c.JSON(post.ToResponse())
 }
 
 func UpdatePost(c *fiber.Ctx) error {
