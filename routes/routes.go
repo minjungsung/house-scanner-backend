@@ -15,6 +15,9 @@ func SetupRoutes(app *fiber.App) {
 	post.Get("/:id", controllers.GetPost)
 	post.Put("/:id", controllers.UpdatePost)
 	post.Delete("/:id", controllers.DeletePost)
+	post.Post("/:id/view", controllers.IncreaseView)
+	post.Post("/:id/like", controllers.IncreaseLike)
+	post.Post("/:id/unlike", controllers.DecreaseLike)
 
 	comment := api.Group("/comments")
 	comment.Post("/", controllers.CreateComment)

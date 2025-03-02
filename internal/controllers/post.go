@@ -87,3 +87,45 @@ func DeletePost(c *fiber.Ctx) error {
 
 	return c.JSON(fiber.Map{"message": "Post deleted successfully"})
 }
+
+func IncreaseView(c *fiber.Ctx) error {
+	idStr := c.Params("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid post ID"})
+	}
+
+	if err := services.NewPostService(repositories.NewPostRepository(db.GetPostgresDB())).IncreaseView(id); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to increase view"})
+	}
+
+	return c.JSON(fiber.Map{"message": "View increased successfully"})
+}
+
+func IncreaseLike(c *fiber.Ctx) error {
+	idStr := c.Params("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid post ID"})
+	}
+
+	if err := services.NewPostService(repositories.NewPostRepository(db.GetPostgresDB())).IncreaseLike(id); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to increase like"})
+	}
+
+	return c.JSON(fiber.Map{"message": "Like increased successfully"})
+}
+
+func DecreaseLike(c *fiber.Ctx) error {
+	idStr := c.Params("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid post ID"})
+	}
+
+	if err := services.NewPostService(repositories.NewPostRepository(db.GetPostgresDB())).DecreaseLike(id); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to decrease like"})
+	}
+
+	return c.JSON(fiber.Map{"message": "Like decreased successfully"})
+}

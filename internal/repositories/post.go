@@ -49,3 +49,15 @@ func (r *PostRepository) GetPostByID(id int) (*models.Post, error) {
 	}
 	return &post, nil
 }
+
+func (r *PostRepository) IncreaseView(id int) error {
+	return r.db.Model(&models.Post{}).Where("id = ?", id).Update("views", gorm.Expr("views + 1")).Error
+}
+
+func (r *PostRepository) IncreaseLike(id int) error {
+	return r.db.Model(&models.Post{}).Where("id = ?", id).Update("likes", gorm.Expr("likes + 1")).Error
+}
+
+func (r *PostRepository) DecreaseLike(id int) error {
+	return r.db.Model(&models.Post{}).Where("id = ?", id).Update("likes", gorm.Expr("GREATEST(likes - 1, 0)")).Error
+}

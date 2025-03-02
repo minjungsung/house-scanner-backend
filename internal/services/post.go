@@ -36,3 +36,15 @@ func (s *PostService) GetAllPosts() ([]models.Post, error) {
 func (s *PostService) GetPostByID(id int) (*models.Post, error) {
 	return s.repo.GetPostByID(id)
 }
+
+func (s *PostService) IncreaseView(id int) error {
+	return s.repo.IncreaseView(id)
+}
+
+func (s *PostService) IncreaseLike(id int) error {
+	return s.repo.IncreaseLike(id)
+}
+
+func (s *PostService) DecreaseLike(id int) error {
+	return s.repo.DecreaseLike(id)
+}
