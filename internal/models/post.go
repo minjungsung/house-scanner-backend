@@ -7,6 +7,7 @@ type Post struct {
 	Title     string    `gorm:"not null"`
 	Content   string    `gorm:"not null"`
 	Author    string    `gorm:"not null"`
+	Category  string    `gorm:"not null"`
 	CreatedAt time.Time `gorm:"autoCreateTime"`
 	UpdatedAt time.Time `gorm:"autoUpdateTime"`
 	Views     int       `gorm:"default:0"`
@@ -15,13 +16,14 @@ type Post struct {
 
 // Custom JSON response
 type PostResponse struct {
-	ID      int       `json:"id"`
-	Title   string    `json:"title"`
-	Content string    `json:"content"`
-	Author  string    `json:"author"`
-	Date    time.Time `json:"date"` // Maps to UpdatedAt
-	Views   int       `json:"views"`
-	Likes   int       `json:"likes"`
+	ID       int       `json:"id"`
+	Title    string    `json:"title"`
+	Content  string    `json:"content"`
+	Author   string    `json:"author"`
+	Category string    `json:"category"`
+	Date     time.Time `json:"date"` // Maps to UpdatedAt
+	Views    int       `json:"views"`
+	Likes    int       `json:"likes"`
 }
 
 // Convert Post to PostResponse
