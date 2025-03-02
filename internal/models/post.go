@@ -29,12 +29,13 @@ type PostResponse struct {
 // Convert Post to PostResponse
 func (p *Post) ToResponse() *PostResponse {
 	return &PostResponse{
-		ID:      p.ID,
-		Title:   p.Title,
-		Content: p.Content,
-		Author:  p.Author,
-		Date:    p.UpdatedAt, // Use UpdatedAt for Date
-		Views:   p.Views,
-		Likes:   p.Likes,
+		ID:       p.ID,
+		Title:    p.Title,
+		Content:  p.Content,
+		Author:   p.Author,
+		Category: p.Category,
+		Date:     p.UpdatedAt, // Use UpdatedAt for Date
+		Views:    p.Views,
+		Likes:    p.Likes,
 	}
 }
