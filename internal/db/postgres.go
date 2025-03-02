@@ -4,6 +4,9 @@ import (
 	"log"
 	"os"
 
+	"fmt"
+	"house-scanner-backend/internal/models"
+
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -25,6 +28,18 @@ func GetPostgresDB() *gorm.DB {
 	if err != nil {
 		log.Fatalf("❌ Failed to connect to the database: %v", err)
 	}
+
+	// 마이그레이션 수행
+	err = db.Debug().AutoMigrate(
+		&models.User{},
+		&models.Post{},
+		&models.Comment{},
+	)
+	if err != nil {
+		log.Fatal("failed to migrate database: ", err)
+	}
+
+	fmt.Println("Migration completed successfully")
 
 	// Example query to test connection
 	var version string

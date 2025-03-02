@@ -1,7 +1,7 @@
 package routes
 
 import (
-	"house-scanner-backend/internal/handlers"
+	"house-scanner-backend/internal/controllers"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -9,20 +9,23 @@ import (
 func SetupRoutes(app *fiber.App) {
 	api := app.Group("/api")
 
-	user := api.Group("/users")
-	user.Post("/register", handlers.RegisterUser)
-	user.Get("/:email", handlers.GetUserByEmail)
-
 	post := api.Group("/posts")
-	post.Get("/", handlers.GetPosts)
-	post.Post("/", handlers.CreatePost)
-	post.Get("/:id", handlers.GetPost)
-	post.Put("/:id", handlers.UpdatePost)
-	post.Delete("/:id", handlers.DeletePost)
+	post.Get("/", controllers.GetPosts)
+	post.Post("/", controllers.CreatePost)
+	post.Get("/:id", controllers.GetPost)
+	post.Put("/:id", controllers.UpdatePost)
+	post.Delete("/:id", controllers.DeletePost)
 
 	comment := api.Group("/comments")
-	comment.Post("/", handlers.CreateComment)
-	comment.Get("/:id", handlers.GetComment)
-	comment.Put("/:id", handlers.UpdateComment)
-	comment.Delete("/:id", handlers.DeleteComment)
+	comment.Post("/", controllers.CreateComment)
+	comment.Get("/:id", controllers.GetComment)
+	comment.Put("/:id", controllers.UpdateComment)
+	comment.Delete("/:id", controllers.DeleteComment)
+
+	user := api.Group("/users")
+	user.Post("/register", controllers.RegisterUser)
+	user.Get("/:email", controllers.GetUserByEmail)
+	user.Post("/login", controllers.Login)
+	user.Post("/logout", controllers.Logout)
+	user.Post("/signup", controllers.SignUp)
 }
