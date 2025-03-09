@@ -14,16 +14,16 @@ import (
 func RegisterUser(c *fiber.Ctx) error {
 	user := new(models.User)
 	if err := c.BodyParser(user); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Cannot parse JSON"})
+		return c.Status(fiber.StatusBadRequest).JSON(models.NewErrorResponse(models.ERROR_INVALID_INPUT))
 	}
 
 	userService := services.NewUserService(repositories.NewUserRepository(db.GetPostgresDB()))
 	if err := userService.RegisterUser(user); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to register user"})
+		return c.Status(fiber.StatusInternalServerError).JSON(models.NewErrorResponse(models.ERROR_INTERNAL_SERVER))
 	}
 
-	log.Println("Received user data: %+v\n", user)
-	return c.Status(fiber.StatusCreated).JSON(fiber.Map{"message": "User registered successfully"})
+	log.Printf("User registered/updated: %s\n", user.Email)
+	return c.Status(fiber.StatusOK).JSON(models.NewSuccessResponse(user))
 }
 
 func GetUserByEmail(c *fiber.Ctx) error {
@@ -32,10 +32,10 @@ func GetUserByEmail(c *fiber.Ctx) error {
 	userService := services.NewUserService(repositories.NewUserRepository(db.GetPostgresDB()))
 	user, err := userService.GetUserByEmail(email)
 	if err != nil {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "User not found"})
+		return c.Status(fiber.StatusNotFound).JSON(models.NewErrorResponse(models.ERROR_USER_NOT_FOUND))
 	}
 
-	return c.JSON(user)
+	return c.JSON(models.NewSuccessResponse(user))
 }
 
 type UserController struct {
@@ -75,7 +75,7 @@ func (c *UserController) Signup(ctx *fiber.Ctx) error {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	return ctx.JSON(fiber.Map{"message": "User signed up successfully"})
+	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{"message": "User signed up successfully"})
 }
 
 // 🟢 로그인 (Login)
@@ -94,7 +94,7 @@ func (c *UserController) Login(ctx *fiber.Ctx) error {
 		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid credentials"})
 	}
 
-	return ctx.JSON(fiber.Map{"token": token})
+	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{"token": token})
 }
 
 func Logout(c *fiber.Ctx) error {
