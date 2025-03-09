@@ -25,12 +25,14 @@ func (a *StringArray) Scan(value interface{}) error {
 }
 
 type User struct {
-	Name           string `gorm:"column:name"`
-	Phone          string `gorm:"column:phone"`
-	Email          string `gorm:"column:email;uniqueIndex"`
-	HashedPassword string `gorm:"column:hashed_password"`
-	Address        string `gorm:"column:address"`
-	AddressDetail  string `gorm:"column:address_detail"`
-	Birthday       string `gorm:"column:birthday"`
-	Message        string `gorm:"column:message"`
+	Name                string `gorm:"column:name"`
+	Phone               string `gorm:"column:phone"`
+	Email               string `gorm:"column:email;uniqueIndex"`
+	HashedPassword      string `gorm:"column:hashed_password"`
+	Address             string `gorm:"column:address"`
+	AddressDetail       string `gorm:"column:address_detail"`
+	TargetAddress       string `gorm:"column:target_address"`
+	TargetAddressDetail string `gorm:"column:target_address_detail"`
+	Birthday            string `gorm:"column:birthday"`
+	Message             string `gorm:"column:message"`
 }

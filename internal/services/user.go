@@ -16,6 +16,13 @@ func NewUserService(repo repositories.UserRepository) *UserService {
 }
 
 func (s *UserService) RegisterUser(user *models.User) error {
+	// Check if user with the same email exists
+	existingUser, err := s.repo.GetUserByEmail(user.Email)
+	if err == nil && existingUser != nil {
+		// If user exists, update the user
+		return s.UpdateUser(user)
+	}
+	// If user doesn't exist, create new user
 	return s.repo.CreateUser(user)
 }
 
