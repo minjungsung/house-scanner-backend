@@ -31,4 +31,11 @@ func SetupRoutes(app *fiber.App) {
 	user.Post("/login", controllers.Login)
 	user.Post("/logout", controllers.Logout)
 	user.Post("/signup", controllers.SignUp)
+
+	analysis := api.Group("/analyses")
+	analysis.Post("/", controllers.CreateAnalysis)
+	analysis.Get("/:id", controllers.GetAnalysis)
+	analysis.Get("/", controllers.GetAnalyses)
+	analysis.Put("/:id", controllers.UpdateAnalysis)
+	analysis.Delete("/:id", controllers.DeleteAnalysis)
 }
