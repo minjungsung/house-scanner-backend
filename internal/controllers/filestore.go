@@ -1,9 +1,9 @@
 package controllers
 
 import (
-	"house-scanner-backend/internal/db"
 	"house-scanner-backend/internal/repositories"
 	"house-scanner-backend/internal/services"
+	"io"
 	"path/filepath"
 	"time"
 
@@ -48,20 +48,26 @@ func UploadFile(c *fiber.Ctx) error {
 	ext := filepath.Ext(file.Filename)
 	filename := uuid.New().String() + ext
 
-	// Upload to Supabase Storage
-	supabase := db.GetSupabaseClient()
-	fileURL := supabase.Storage.GetPublicUrl(bucketName, filename)
+	// Read file content
+	fileContent, err := io.ReadAll(src)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to read file",
+		})
+	}
 
-	// Upload file using REST API
-	_, err = supabase.Storage.UploadFile(bucketName, filename, src)
+	// Upload to Supabase Storage
+	err = services.NewFileStoreService(repositories.NewFileStoreRepository()).UploadFile(fileContent, bucketName, filename)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Failed to upload file",
 		})
 	}
 
+	services.NewFileStoreService(repositories.NewFileStoreRepository()).UploadFile(fileContent, bucketName, filename)
+
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"url":         fileURL,
+		"url":         "https://" + bucketName + ".supabase.co/storage/v1/object/public/" + filename,
 		"filename":    filename,
 		"uploaded_at": time.Now(),
 	})

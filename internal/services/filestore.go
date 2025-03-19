@@ -1,7 +1,6 @@
 package services
 
 import (
-	"house-scanner-backend/internal/models"
 	"house-scanner-backend/internal/repositories"
 )
 
@@ -13,8 +12,8 @@ func NewFileStoreService(repo *repositories.FileStoreRepository) *FileStoreServi
 	return &FileStoreService{repo: repo}
 }
 
-func (s *FileStoreService) CreateFile(file *models.File, bucketName string, filePath string, data []byte) error {
-	return s.repo.CreateFile(file, bucketName, filePath, data)
+func (s *FileStoreService) UploadFile(fileContent []byte, bucketName string, filePath string) error {
+	return s.repo.UploadFile(fileContent, bucketName, filePath)
 }
 
 func (s *FileStoreService) GetFile(bucketName string, filePath string) ([]byte, error) {
@@ -23,8 +22,4 @@ func (s *FileStoreService) GetFile(bucketName string, filePath string) ([]byte, 
 
 func (s *FileStoreService) DeleteFile(bucketName string, filePath string) error {
 	return s.repo.DeleteFile(bucketName, filePath)
-}
-
-func (s *FileStoreService) UploadFile(file *models.File, bucketName string, filePath string, data []byte) error {
-	return s.repo.UploadFile(file, bucketName, filePath, data)
 }

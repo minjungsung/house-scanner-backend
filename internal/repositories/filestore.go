@@ -2,8 +2,8 @@ package repositories
 
 import (
 	"bytes"
+	"fmt"
 	"house-scanner-backend/internal/db"
-	"house-scanner-backend/internal/models"
 
 	"github.com/supabase-community/supabase-go"
 )
@@ -16,9 +16,16 @@ func NewFileStoreRepository() *FileStoreRepository {
 	return &FileStoreRepository{supabase: db.GetSupabaseClient()}
 }
 
-func (r *FileStoreRepository) CreateFile(file *models.File, bucketName string, filePath string, data []byte) error {
-	_ , err := r.supabase.Storage.UploadFile(bucketName, filePath, bytes.NewReader(data))
-	return err
+func (r *FileStoreRepository) UploadFile(fileContent []byte, bucketName string, filePath string) error {
+	reader := bytes.NewBuffer(fileContent)
+
+	response, err := r.supabase.Storage.UploadFile(bucketName, filePath, reader)
+	if err != nil {
+		fmt.Printf("Upload error: %v\n", err)
+		return err
+	}
+	fmt.Printf("Upload successful. Response: %+v\n", response)
+	return nil
 }
 
 func (r *FileStoreRepository) GetFile(bucketName string, filePath string) ([]byte, error) {
@@ -29,8 +36,4 @@ func (r *FileStoreRepository) GetFile(bucketName string, filePath string) ([]byt
 func (r *FileStoreRepository) DeleteFile(bucketName string, filePath string) error {
 	_, err := r.supabase.Storage.RemoveFile(bucketName, []string{filePath})
 	return err
-}
-
-func (r *FileStoreRepository) UploadFile(file *models.File, bucketName string, filePath string, data []byte) error {
-	return r.CreateFile(file, bucketName, filePath, data)
 }

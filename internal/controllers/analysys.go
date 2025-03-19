@@ -5,6 +5,8 @@ import (
 	"house-scanner-backend/internal/repositories"
 	"house-scanner-backend/internal/services"
 
+	"io"
+
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -23,10 +25,25 @@ func CreateAnalysis(c *fiber.Ctx) error {
 	analysis.Phone = c.FormValue("phone")
 	analysis.Email = c.FormValue("email")
 	analysis.RequestType = c.FormValue("requestType")
-	analysis.File = models.File{
-		Filename: c.FormValue("file"),
-		Filepath: c.FormValue("filepath"),
+
+	// Handle file upload
+	file, err := c.FormFile("file")
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "File upload failed"})
 	}
+
+	// Open and read the file
+	src, err := file.Open()
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to open file"})
+	}
+	defer src.Close()
+
+	fileContent, err := io.ReadAll(src)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to read file"})
+	}
+
 
 	// Validate required fields
 	if analysis.Name == "" || analysis.Phone == "" || analysis.Email == "" || analysis.RequestType == "" {
@@ -34,7 +51,7 @@ func CreateAnalysis(c *fiber.Ctx) error {
 	}
 
 	// Upload file to Supabase Storage
-	if err := services.NewFileStoreService(repositories.NewFileStoreRepository()).UploadFile(&analysis.File, "house_scanner", analysis.File.Filename, analysis.File.FileData); err != nil {
+	if err := services.NewFileStoreService(repositories.NewFileStoreRepository()).UploadFile(fileContent, "documents", file.Filename); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to upload file"})
 	}
 
