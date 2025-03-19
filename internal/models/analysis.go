@@ -3,16 +3,16 @@ package models
 import "time"
 
 type Analysis struct {
-	ID               int    `gorm:"primaryKey;autoIncrement"`
-	Name             string `gorm:"not null"`
-	Phone            string `gorm:"not null"`
-	Email            string `gorm:"not null"`
-	RequestType      string `gorm:"not null"`
-	File             File
-	Title            string
-	Content          string
-	CreatedTimestamp time.Time `gorm:"autoCreateTime"`
-	UpdatedTimestamp time.Time `gorm:"autoUpdateTime"`
+	ID               string    `json:"id,omitempty" bson:"_id,omitempty"`
+	Name             string    `json:"name,omitempty" bson:"name,omitempty"`
+	Phone            string    `json:"phone,omitempty" bson:"phone,omitempty"`
+	Email            string    `json:"email,omitempty" bson:"email,omitempty"`
+	RequestType      string    `json:"requestType,omitempty" bson:"requestType,omitempty"`
+	File             File      `json:"file,omitempty" bson:"file,omitempty"`
+	Title            string    `json:"title,omitempty" bson:"title,omitempty"`
+	Content          string    `json:"content,omitempty" bson:"content,omitempty"`
+	CreatedTimestamp time.Time `json:"createdAt,omitempty" bson:"createdAt,omitempty"`
+	UpdatedTimestamp time.Time `json:"updatedAt,omitempty" bson:"updatedAt,omitempty"`
 }
 
 type AnalysisStatus string

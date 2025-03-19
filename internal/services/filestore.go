@@ -13,18 +13,18 @@ func NewFileStoreService(repo *repositories.FileStoreRepository) *FileStoreServi
 	return &FileStoreService{repo: repo}
 }
 
-func (s *FileStoreService) CreateFile(file *models.File) error {
-	return s.repo.CreateFile(file)
+func (s *FileStoreService) CreateFile(file *models.File, bucketName string, filePath string, data []byte) error {
+	return s.repo.CreateFile(file, bucketName, filePath, data)
 }
 
-func (s *FileStoreService) GetFile(id string) (*models.File, error) {
-	return s.repo.GetFile(id)
+func (s *FileStoreService) GetFile(bucketName string, filePath string) ([]byte, error) {
+	return s.repo.GetFile(bucketName, filePath)
 }
 
-func (s *FileStoreService) DeleteFile(id string) error {
-	return s.repo.DeleteFile(id)
+func (s *FileStoreService) DeleteFile(bucketName string, filePath string) error {
+	return s.repo.DeleteFile(bucketName, filePath)
 }
 
-func (s *FileStoreService) UploadFile(file *models.File) error {
-	return s.repo.UploadFile(file)
+func (s *FileStoreService) UploadFile(file *models.File, bucketName string, filePath string, data []byte) error {
+	return s.repo.UploadFile(file, bucketName, filePath, data)
 }

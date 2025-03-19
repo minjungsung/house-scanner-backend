@@ -6,6 +6,7 @@ import (
 	"house-scanner-backend/internal/models"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -19,25 +20,62 @@ func NewAnalysisRepository() *AnalysisRepository {
 }
 
 func (r *AnalysisRepository) CreateAnalysis(analysis *models.Analysis) error {
-	_, err := r.db.Collection("analysis").InsertOne(context.Background(), analysis)
+	// Convert struct to bson.M, which will automatically omit empty fields
+	doc, err := bson.Marshal(analysis)
+	if err != nil {
+		return err
+	}
+
+	var bsonDoc bson.M
+	if err := bson.Unmarshal(doc, &bsonDoc); err != nil {
+		return err
+	}
+
+	// Insert the document
+	_, err = r.db.Collection("analysis").InsertOne(context.Background(), bsonDoc)
 	return err
 }
 
-func (r *AnalysisRepository) GetAnalysis(id int) (*models.Analysis, error) {
+func (r *AnalysisRepository) GetAnalysis(id string) (*models.Analysis, error) {
+	objectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, err
+	}
+
 	var analysis models.Analysis
-	if err := r.db.Collection("analysis").FindOne(context.Background(), bson.M{"id": id}).Decode(&analysis); err != nil {
+	if err := r.db.Collection("analysis").FindOne(context.Background(), bson.M{"_id": objectID}).Decode(&analysis); err != nil {
 		return nil, err
 	}
 	return &analysis, nil
 }
 
-func (r *AnalysisRepository) UpdateAnalysis(id int, analysis *models.Analysis) error {
-	_, err := r.db.Collection("analysis").UpdateOne(context.Background(), bson.M{"id": id}, bson.M{"$set": analysis})
+func (r *AnalysisRepository) UpdateAnalysis(id string, analysis *models.Analysis) error {
+	objectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+
+	doc, err := bson.Marshal(analysis)
+	if err != nil {
+		return err
+	}
+
+	var bsonDoc bson.M
+	if err := bson.Unmarshal(doc, &bsonDoc); err != nil {
+		return err
+	}
+
+	_, err = r.db.Collection("analysis").UpdateOne(context.Background(), bson.M{"_id": objectID}, bson.M{"$set": bsonDoc})
 	return err
 }
 
-func (r *AnalysisRepository) DeleteAnalysis(id int) error {
-	_, err := r.db.Collection("analysis").DeleteOne(context.Background(), bson.M{"id": id})
+func (r *AnalysisRepository) DeleteAnalysis(id string) error {
+	objectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+
+	_, err = r.db.Collection("analysis").DeleteOne(context.Background(), bson.M{"_id": objectID})
 	return err
 }
 

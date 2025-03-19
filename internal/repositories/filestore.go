@@ -1,35 +1,36 @@
 package repositories
 
 import (
+	"bytes"
+	"house-scanner-backend/internal/db"
 	"house-scanner-backend/internal/models"
 
-	"gorm.io/gorm"
+	"github.com/supabase-community/supabase-go"
 )
 
 type FileStoreRepository struct {
-	db *gorm.DB
+	supabase *supabase.Client
 }
 
-func NewFileStoreRepository(db *gorm.DB) *FileStoreRepository {
-	return &FileStoreRepository{db: db}
+func NewFileStoreRepository() *FileStoreRepository {
+	return &FileStoreRepository{supabase: db.GetSupabaseClient()}
 }
 
-func (r *FileStoreRepository) CreateFile(file *models.File) error {
-	return r.db.Create(file).Error
+func (r *FileStoreRepository) CreateFile(file *models.File, bucketName string, filePath string, data []byte) error {
+	_ , err := r.supabase.Storage.UploadFile(bucketName, filePath, bytes.NewReader(data))
+	return err
 }
 
-func (r *FileStoreRepository) GetFile(id string) (*models.File, error) {
-	var file models.File
-	if err := r.db.Where("id = ?", id).First(&file).Error; err != nil {
-		return nil, err
-	}
-	return &file, nil
+func (r *FileStoreRepository) GetFile(bucketName string, filePath string) ([]byte, error) {
+	data, err := r.supabase.Storage.DownloadFile(bucketName, filePath)
+	return data, err
 }
 
-func (r *FileStoreRepository) DeleteFile(id string) error {
-	return r.db.Delete(&models.File{}, id).Error
+func (r *FileStoreRepository) DeleteFile(bucketName string, filePath string) error {
+	_, err := r.supabase.Storage.RemoveFile(bucketName, []string{filePath})
+	return err
 }
 
-func (r *FileStoreRepository) UploadFile(file *models.File) error {
-	return r.db.Create(file).Error
+func (r *FileStoreRepository) UploadFile(file *models.File, bucketName string, filePath string, data []byte) error {
+	return r.CreateFile(file, bucketName, filePath, data)
 }

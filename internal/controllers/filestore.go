@@ -1,12 +1,14 @@
 package controllers
 
 import (
-	"fmt"
 	"house-scanner-backend/internal/db"
 	"house-scanner-backend/internal/repositories"
 	"house-scanner-backend/internal/services"
+	"path/filepath"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 )
 
 type FileStoreHandler struct {
@@ -18,25 +20,58 @@ func NewFileStoreHandler(fileStoreService *services.FileStoreService) *FileStore
 }
 
 func UploadFile(c *fiber.Ctx) error {
+	bucketName := c.FormValue("bucket")
+	if bucketName == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Bucket name is required",
+		})
+	}
+
+	// Get the file from the request
 	file, err := c.FormFile("file")
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Cannot parse file"})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "No file uploaded",
+		})
 	}
 
-	filename := file.Filename
-	filepath := fmt.Sprintf("uploads/%s", filename)
+	// Open the file
+	src, err := file.Open()
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to open file",
+		})
+	}
+	defer src.Close()
 
-	if err := c.SaveFile(file, filepath); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to save file"})
+	// Generate a unique filename
+	ext := filepath.Ext(file.Filename)
+	filename := uuid.New().String() + ext
+
+	// Upload to Supabase Storage
+	supabase := db.GetSupabaseClient()
+	fileURL := supabase.Storage.GetPublicUrl(bucketName, filename)
+
+	// Upload file using REST API
+	_, err = supabase.Storage.UploadFile(bucketName, filename, src)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to upload file",
+		})
 	}
 
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "File uploaded successfully"})
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"url":         fileURL,
+		"filename":    filename,
+		"uploaded_at": time.Now(),
+	})
 }
 
 func GetFile(c *fiber.Ctx) error {
-	id := c.Params("id")
+	bucketName := c.Params("bucket")
+	filePath := c.Params("path")
 
-	file, err := services.NewFileStoreService(repositories.NewFileStoreRepository(db.GetPostgresDB())).GetFile(id)
+	file, err := services.NewFileStoreService(repositories.NewFileStoreRepository()).GetFile(bucketName, filePath)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to get file"})
 	}
@@ -45,9 +80,10 @@ func GetFile(c *fiber.Ctx) error {
 }
 
 func DeleteFile(c *fiber.Ctx) error {
-	id := c.Params("id")
+	bucketName := c.Params("bucket")
+	filePath := c.Params("path")
 
-	err := services.NewFileStoreService(repositories.NewFileStoreRepository(db.GetPostgresDB())).DeleteFile(id)
+	err := services.NewFileStoreService(repositories.NewFileStoreRepository()).DeleteFile(bucketName, filePath)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to delete file"})
 	}

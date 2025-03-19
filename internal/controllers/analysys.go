@@ -4,7 +4,6 @@ import (
 	"house-scanner-backend/internal/models"
 	"house-scanner-backend/internal/repositories"
 	"house-scanner-backend/internal/services"
-	"strconv"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -24,10 +23,19 @@ func CreateAnalysis(c *fiber.Ctx) error {
 	analysis.Phone = c.FormValue("phone")
 	analysis.Email = c.FormValue("email")
 	analysis.RequestType = c.FormValue("requestType")
+	analysis.File = models.File{
+		Filename: c.FormValue("file"),
+		Filepath: c.FormValue("filepath"),
+	}
 
 	// Validate required fields
 	if analysis.Name == "" || analysis.Phone == "" || analysis.Email == "" || analysis.RequestType == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Missing required fields"})
+	}
+
+	// Upload file to Supabase Storage
+	if err := services.NewFileStoreService(repositories.NewFileStoreRepository()).UploadFile(&analysis.File, "house_scanner", analysis.File.Filename, analysis.File.FileData); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to upload file"})
 	}
 
 	// Create analysis in database
@@ -40,10 +48,7 @@ func CreateAnalysis(c *fiber.Ctx) error {
 
 func GetAnalysis(c *fiber.Ctx) error {
 	idStr := c.Params("id")
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid analysis ID"})
-	}
+	id := idStr
 
 	analysis, err := services.NewAnalysisService(repositories.NewAnalysisRepository()).GetAnalysis(id)
 	if err != nil {
@@ -64,10 +69,7 @@ func GetAnalyses(c *fiber.Ctx) error {
 
 func UpdateAnalysis(c *fiber.Ctx) error {
 	idStr := c.Params("id")
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid analysis ID"})
-	}
+	id := idStr
 
 	analysis := new(models.Analysis)
 	if err := c.BodyParser(analysis); err != nil {
@@ -83,10 +85,7 @@ func UpdateAnalysis(c *fiber.Ctx) error {
 
 func DeleteAnalysis(c *fiber.Ctx) error {
 	idStr := c.Params("id")
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid analysis ID"})
-	}
+	id := idStr
 
 	if err := services.NewAnalysisService(repositories.NewAnalysisRepository()).DeleteAnalysis(id); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to delete analysis"})
