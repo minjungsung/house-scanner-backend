@@ -5,6 +5,9 @@ import (
 	"house-scanner-backend/internal/repositories"
 	"house-scanner-backend/internal/services"
 
+	"fmt"
+	"io"
+
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -17,12 +20,49 @@ func NewAnalysisHandler(analysisService *services.AnalysisService) *AnalysisHand
 }
 
 func CreateAnalysis(c *fiber.Ctx) error {
+	// Get the file from the request
+	file, err := c.FormFile("file")
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "File upload is required"})
+	}
+
+	// Open and read the file
+	src, err := file.Open()
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to open file",
+		})
+	}
+	defer src.Close()
+
+	// Read file content
+	fileContent, err := io.ReadAll(src)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to read file",
+		})
+	}
+
+	// Upload file directly using FileStoreService
+	fileStore := services.NewFileStoreService(repositories.NewFileStoreRepository())
+	err = fileStore.UploadFile(fileContent, "documents", file.Filename)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": fmt.Sprintf("Failed to upload file: %v", err),
+		})
+	}
+
 	// Create new analysis instance
 	analysis := new(models.Analysis)
 	analysis.Name = c.FormValue("name")
 	analysis.Phone = c.FormValue("phone")
 	analysis.Email = c.FormValue("email")
 	analysis.RequestType = c.FormValue("requestType")
+	analysis.File = &models.File{
+		Name: file.Filename,
+		Size: file.Size,
+		Path: fmt.Sprintf("documents/%s", file.Filename),
+	}
 
 	// Validate required fields
 	if analysis.Name == "" || analysis.Phone == "" || analysis.Email == "" || analysis.RequestType == "" {

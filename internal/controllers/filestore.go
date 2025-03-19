@@ -18,11 +18,8 @@ func NewFileStoreHandler(fileStoreService *services.FileStoreService) *FileStore
 }
 
 func UploadFile(c *fiber.Ctx) error {
-	// Get bucket name from header
-	bucketName := c.Get("X-Bucket-Name")
-	if bucketName == "" {
-		bucketName = "documents" // default bucket
-	}
+	// Get raw file content from request body
+	fileContent := c.Body()
 
 	// Get filename from header
 	fileName := c.Get("X-File-Name")
@@ -32,16 +29,8 @@ func UploadFile(c *fiber.Ctx) error {
 		})
 	}
 
-	// Get the raw file content from request body
-	fileContent := c.Body()
-	contentLength := len(fileContent)
-
-	fmt.Printf("Uploading file:\n")
-	fmt.Printf("- Filename: %s\n", fileName)
-	fmt.Printf("- Content length: %d bytes\n", contentLength)
-
 	// Upload to Supabase Storage
-	err := services.NewFileStoreService(repositories.NewFileStoreRepository()).UploadFile(fileContent, bucketName, fileName)
+	err := services.NewFileStoreService(repositories.NewFileStoreRepository()).UploadFile(fileContent, "documents", fileName)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": fmt.Sprintf("Failed to upload file: %v", err),
@@ -50,8 +39,9 @@ func UploadFile(c *fiber.Ctx) error {
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message":  "File uploaded successfully",
-		"filename": fileName,
-		"size":     contentLength,
+		"fileName": fileName,
+		"size":     len(fileContent),
+		"path":     fmt.Sprintf("documents/%s", fileName),
 	})
 }
 
