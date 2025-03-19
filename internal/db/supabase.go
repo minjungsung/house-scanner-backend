@@ -10,8 +10,8 @@ var supabaseClient *supabase.Client
 
 func GetSupabaseClient() *supabase.Client {
 	if supabaseClient == nil {
-		supabaseURL := os.Getenv("SUPABASE_STORAGE_URL")
-		supabaseKey := os.Getenv("SUPABASE_STORAGE_KEY")
+		supabaseURL := os.Getenv("SUPABASE_API_URL")
+		supabaseKey := os.Getenv("SUPABASE_API_KEY")
 
 		client, err := supabase.NewClient(supabaseURL, supabaseKey, nil)
 		if err != nil {
