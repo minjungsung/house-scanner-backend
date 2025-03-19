@@ -5,8 +5,6 @@ import (
 	"house-scanner-backend/internal/repositories"
 	"house-scanner-backend/internal/services"
 
-	"io"
-
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -26,33 +24,9 @@ func CreateAnalysis(c *fiber.Ctx) error {
 	analysis.Email = c.FormValue("email")
 	analysis.RequestType = c.FormValue("requestType")
 
-	// Handle file upload
-	file, err := c.FormFile("file")
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "File upload failed"})
-	}
-
-	// Open and read the file
-	src, err := file.Open()
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to open file"})
-	}
-	defer src.Close()
-
-	fileContent, err := io.ReadAll(src)
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to read file"})
-	}
-
-
 	// Validate required fields
 	if analysis.Name == "" || analysis.Phone == "" || analysis.Email == "" || analysis.RequestType == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Missing required fields"})
-	}
-
-	// Upload file to Supabase Storage
-	if err := services.NewFileStoreService(repositories.NewFileStoreRepository()).UploadFile(fileContent, "documents", file.Filename); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to upload file"})
 	}
 
 	// Create analysis in database
@@ -60,7 +34,10 @@ func CreateAnalysis(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to create analysis"})
 	}
 
-	return c.Status(fiber.StatusCreated).JSON(fiber.Map{"message": "Analysis created successfully"})
+	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
+		"message":  "Analysis created successfully",
+		"analysis": analysis,
+	})
 }
 
 func GetAnalysis(c *fiber.Ctx) error {

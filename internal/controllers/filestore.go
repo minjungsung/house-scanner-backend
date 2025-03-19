@@ -3,12 +3,10 @@ package controllers
 import (
 	"house-scanner-backend/internal/repositories"
 	"house-scanner-backend/internal/services"
-	"io"
-	"path/filepath"
-	"time"
+
+	"fmt"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/google/uuid"
 )
 
 type FileStoreHandler struct {
@@ -20,56 +18,40 @@ func NewFileStoreHandler(fileStoreService *services.FileStoreService) *FileStore
 }
 
 func UploadFile(c *fiber.Ctx) error {
-	bucketName := c.FormValue("bucket")
+	// Get bucket name from header
+	bucketName := c.Get("X-Bucket-Name")
 	if bucketName == "" {
+		bucketName = "documents" // default bucket
+	}
+
+	// Get filename from header
+	fileName := c.Get("X-File-Name")
+	if fileName == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Bucket name is required",
+			"error": "X-File-Name header is required",
 		})
 	}
 
-	// Get the file from the request
-	file, err := c.FormFile("file")
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "No file uploaded",
-		})
-	}
+	// Get the raw file content from request body
+	fileContent := c.Body()
+	contentLength := len(fileContent)
 
-	// Open the file
-	src, err := file.Open()
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Failed to open file",
-		})
-	}
-	defer src.Close()
-
-	// Generate a unique filename
-	ext := filepath.Ext(file.Filename)
-	filename := uuid.New().String() + ext
-
-	// Read file content
-	fileContent, err := io.ReadAll(src)
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Failed to read file",
-		})
-	}
+	fmt.Printf("Uploading file:\n")
+	fmt.Printf("- Filename: %s\n", fileName)
+	fmt.Printf("- Content length: %d bytes\n", contentLength)
 
 	// Upload to Supabase Storage
-	err = services.NewFileStoreService(repositories.NewFileStoreRepository()).UploadFile(fileContent, bucketName, filename)
+	err := services.NewFileStoreService(repositories.NewFileStoreRepository()).UploadFile(fileContent, bucketName, fileName)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Failed to upload file",
+			"error": fmt.Sprintf("Failed to upload file: %v", err),
 		})
 	}
 
-	services.NewFileStoreService(repositories.NewFileStoreRepository()).UploadFile(fileContent, bucketName, filename)
-
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"url":         "https://" + bucketName + ".supabase.co/storage/v1/object/public/" + filename,
-		"filename":    filename,
-		"uploaded_at": time.Now(),
+		"message":  "File uploaded successfully",
+		"filename": fileName,
+		"size":     contentLength,
 	})
 }
 
