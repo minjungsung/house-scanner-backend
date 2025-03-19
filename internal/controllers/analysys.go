@@ -7,7 +7,6 @@ import (
 
 	"fmt"
 	"io"
-
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -62,6 +61,7 @@ func CreateAnalysis(c *fiber.Ctx) error {
 		Name: file.Filename,
 		Size: file.Size,
 		Path: fmt.Sprintf("documents/%s", file.Filename),
+		Type: file.Header.Get("Content-Type"),
 	}
 
 	// Validate required fields
