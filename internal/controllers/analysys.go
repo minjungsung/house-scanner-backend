@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"house-scanner-backend/internal/db"
 	"house-scanner-backend/internal/models"
 	"house-scanner-backend/internal/repositories"
 	"house-scanner-backend/internal/services"
@@ -19,12 +18,20 @@ func NewAnalysisHandler(analysisService *services.AnalysisService) *AnalysisHand
 }
 
 func CreateAnalysis(c *fiber.Ctx) error {
+	// Create new analysis instance
 	analysis := new(models.Analysis)
-	if err := c.BodyParser(analysis); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Cannot parse JSON"})
+	analysis.Name = c.FormValue("name")
+	analysis.Phone = c.FormValue("phone")
+	analysis.Email = c.FormValue("email")
+	analysis.RequestType = c.FormValue("requestType")
+
+	// Validate required fields
+	if analysis.Name == "" || analysis.Phone == "" || analysis.Email == "" || analysis.RequestType == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Missing required fields"})
 	}
 
-	if err := services.NewAnalysisService(repositories.NewAnalysisRepository(db.GetPostgresDB())).CreateAnalysis(analysis); err != nil {
+	// Create analysis in database
+	if err := services.NewAnalysisService(repositories.NewAnalysisRepository()).CreateAnalysis(analysis); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to create analysis"})
 	}
 
@@ -38,7 +45,7 @@ func GetAnalysis(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid analysis ID"})
 	}
 
-	analysis, err := services.NewAnalysisService(repositories.NewAnalysisRepository(db.GetPostgresDB())).GetAnalysis(id)
+	analysis, err := services.NewAnalysisService(repositories.NewAnalysisRepository()).GetAnalysis(id)
 	if err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Analysis not found"})
 	}
@@ -47,7 +54,7 @@ func GetAnalysis(c *fiber.Ctx) error {
 }
 
 func GetAnalyses(c *fiber.Ctx) error {
-	analyses, err := services.NewAnalysisService(repositories.NewAnalysisRepository(db.GetPostgresDB())).GetAnalyses()
+	analyses, err := services.NewAnalysisService(repositories.NewAnalysisRepository()).GetAnalyses()
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to retrieve analyses"})
 	}
@@ -67,7 +74,7 @@ func UpdateAnalysis(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Cannot parse JSON"})
 	}
 
-	if err := services.NewAnalysisService(repositories.NewAnalysisRepository(db.GetPostgresDB())).UpdateAnalysis(id, analysis); err != nil {
+	if err := services.NewAnalysisService(repositories.NewAnalysisRepository()).UpdateAnalysis(id, analysis); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to update analysis"})
 	}
 
@@ -81,7 +88,7 @@ func DeleteAnalysis(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid analysis ID"})
 	}
 
-	if err := services.NewAnalysisService(repositories.NewAnalysisRepository(db.GetPostgresDB())).DeleteAnalysis(id); err != nil {
+	if err := services.NewAnalysisService(repositories.NewAnalysisRepository()).DeleteAnalysis(id); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to delete analysis"})
 	}
 

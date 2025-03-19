@@ -3,15 +3,15 @@ package models
 import "time"
 
 type Post struct {
-	ID        int       `gorm:"primaryKey"`
-	Title     string    `gorm:"not null"`
-	Content   string    `gorm:"not null"`
-	Author    string    `gorm:"not null"`
-	Category  string    `gorm:"not null"`
-	CreatedAt time.Time `gorm:"autoCreateTime"`
-	UpdatedAt time.Time `gorm:"autoUpdateTime"`
-	Views     int       `gorm:"default:0"`
-	Likes     int       `gorm:"default:0"`
+	ID               int       `gorm:"primaryKey"`
+	Title            string    `gorm:"not null"`
+	Content          string    `gorm:"not null"`
+	Author           string    `gorm:"not null"`
+	Category         string    `gorm:"not null"`
+	CreatedTimestamp time.Time `gorm:"autoCreateTime"`
+	UpdatedTimestamp time.Time `gorm:"autoUpdateTime"`
+	Views            int       `gorm:"default:0"`
+	Likes            int       `gorm:"default:0"`
 }
 
 // Custom JSON response
@@ -21,7 +21,7 @@ type PostResponse struct {
 	Content  string    `json:"content"`
 	Author   string    `json:"author"`
 	Category string    `json:"category"`
-	Date     time.Time `json:"date"` // Maps to UpdatedAt
+	Date     time.Time `json:"date"` // Maps to UpdatedTimestamp
 	Views    int       `json:"views"`
 	Likes    int       `json:"likes"`
 }
@@ -34,7 +34,7 @@ func (p *Post) ToResponse() *PostResponse {
 		Content:  p.Content,
 		Author:   p.Author,
 		Category: p.Category,
-		Date:     p.UpdatedAt, // Use UpdatedAt for Date
+		Date:     p.UpdatedTimestamp, // Use UpdatedTimestamp for Date
 		Views:    p.Views,
 		Likes:    p.Likes,
 	}
