@@ -35,7 +35,7 @@ func SetupRoutes(app *fiber.App) {
 	analysis := api.Group("/analysis")
 	analysis.Post("/", controllers.CreateAnalysis)
 	analysis.Get("/:id", controllers.GetAnalysis)
-	analysis.Get("/", controllers.GetAnalyses)
+	analysis.Post("/search", controllers.GetAnalyses)
 	analysis.Put("/:id", controllers.UpdateAnalysis)
 	analysis.Delete("/:id", controllers.DeleteAnalysis)
 

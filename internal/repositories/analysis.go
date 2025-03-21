@@ -4,6 +4,7 @@ import (
 	"context"
 	"house-scanner-backend/internal/db"
 	"house-scanner-backend/internal/models"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -32,6 +33,14 @@ func (r *AnalysisRepository) CreateAnalysis(analysis *models.Analysis) error {
 	}
 
 	// Insert the document
+	// add createdAt and updatedAt to the document
+	bsonDoc["createdAt"] = time.Now()
+	bsonDoc["updatedAt"] = time.Now()
+
+	// yyyyMMddHHmmss
+	bsonDoc["registerNumber"] = time.Now().Format("20060102150405")
+	bsonDoc["status"] = models.Pending
+
 	_, err = r.db.Collection("analysis").InsertOne(context.Background(), bsonDoc)
 	return err
 }
@@ -79,17 +88,17 @@ func (r *AnalysisRepository) DeleteAnalysis(id string) error {
 	return err
 }
 
-func (r *AnalysisRepository) GetAnalyses() ([]models.Analysis, error) {
+func (r *AnalysisRepository) GetAnalyses(name string, phone string) ([]models.Analysis, error) {
 	var analyses []models.Analysis
-	cursor, err := r.db.Collection("analysis").Find(context.Background(), bson.M{})
+	cursor, err := r.db.Collection("analysis").Find(context.Background(), bson.M{"name": name, "phone": phone})
 	if err != nil {
-		return nil, err
+		return []models.Analysis{}, err
 	}
 	defer cursor.Close(context.Background())
 	for cursor.Next(context.Background()) {
 		var analysis models.Analysis
 		if err := cursor.Decode(&analysis); err != nil {
-			return nil, err
+			return []models.Analysis{}, err
 		}
 		analyses = append(analyses, analysis)
 	}

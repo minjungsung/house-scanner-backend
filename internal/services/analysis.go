@@ -9,8 +9,8 @@ type AnalysisService struct {
 	repo *repositories.AnalysisRepository
 }
 
-func NewAnalysisService(repo *repositories.AnalysisRepository) *AnalysisService {
-	return &AnalysisService{repo: repo}
+func NewAnalysisService() *AnalysisService {
+	return &AnalysisService{repo: repositories.NewAnalysisRepository()}
 }
 
 func (s *AnalysisService) CreateAnalysis(analysis *models.Analysis) error {
@@ -29,6 +29,6 @@ func (s *AnalysisService) DeleteAnalysis(id string) error {
 	return s.repo.DeleteAnalysis(id)
 }
 
-func (s *AnalysisService) GetAnalyses() ([]models.Analysis, error) {
-	return s.repo.GetAnalyses()
+func (s *AnalysisService) GetAnalyses(name string, phone string) ([]models.Analysis, error) {
+	return s.repo.GetAnalyses(name, phone)
 }

@@ -7,6 +7,7 @@ import (
 
 	"fmt"
 	"io"
+
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -70,7 +71,7 @@ func CreateAnalysis(c *fiber.Ctx) error {
 	}
 
 	// Create analysis in database
-	if err := services.NewAnalysisService(repositories.NewAnalysisRepository()).CreateAnalysis(analysis); err != nil {
+	if err := services.NewAnalysisService().CreateAnalysis(analysis); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to create analysis"})
 	}
 
@@ -84,7 +85,7 @@ func GetAnalysis(c *fiber.Ctx) error {
 	idStr := c.Params("id")
 	id := idStr
 
-	analysis, err := services.NewAnalysisService(repositories.NewAnalysisRepository()).GetAnalysis(id)
+	analysis, err := services.NewAnalysisService().GetAnalysis(id)
 	if err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Analysis not found"})
 	}
@@ -93,7 +94,20 @@ func GetAnalysis(c *fiber.Ctx) error {
 }
 
 func GetAnalyses(c *fiber.Ctx) error {
-	analyses, err := services.NewAnalysisService(repositories.NewAnalysisRepository()).GetAnalyses()
+	// should have name and phonenumber
+	body := new(models.Analysis)
+	if err := c.BodyParser(body); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Cannot parse JSON"})
+	}
+
+	name := body.Name
+	phone := body.Phone
+
+	if name == "" && phone == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Name and phone are required"})
+	}
+
+	analyses, err := services.NewAnalysisService().GetAnalyses(name, phone)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to retrieve analyses"})
 	}
@@ -110,7 +124,7 @@ func UpdateAnalysis(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Cannot parse JSON"})
 	}
 
-	if err := services.NewAnalysisService(repositories.NewAnalysisRepository()).UpdateAnalysis(id, analysis); err != nil {
+	if err := services.NewAnalysisService().UpdateAnalysis(id, analysis); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to update analysis"})
 	}
 
@@ -121,7 +135,7 @@ func DeleteAnalysis(c *fiber.Ctx) error {
 	idStr := c.Params("id")
 	id := idStr
 
-	if err := services.NewAnalysisService(repositories.NewAnalysisRepository()).DeleteAnalysis(id); err != nil {
+	if err := services.NewAnalysisService().DeleteAnalysis(id); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to delete analysis"})
 	}
 
