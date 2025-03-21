@@ -8,7 +8,8 @@ type FileStoreService struct {
 	repo *repositories.FileStoreRepository
 }
 
-func NewFileStoreService(repo *repositories.FileStoreRepository) *FileStoreService {
+func NewFileStoreService() *FileStoreService {
+	repo := repositories.NewFileStoreRepository()
 	return &FileStoreService{repo: repo}
 }
 

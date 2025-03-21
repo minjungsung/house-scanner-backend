@@ -2,11 +2,11 @@ package controllers
 
 import (
 	"house-scanner-backend/internal/models"
-	"house-scanner-backend/internal/repositories"
 	"house-scanner-backend/internal/services"
 
 	"fmt"
 	"io"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -44,7 +44,7 @@ func CreateAnalysis(c *fiber.Ctx) error {
 	}
 
 	// Upload file directly using FileStoreService
-	fileStore := services.NewFileStoreService(repositories.NewFileStoreRepository())
+	fileStore := services.NewFileStoreService()
 	err = fileStore.UploadFile(fileContent, "documents", file.Filename)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -71,7 +71,7 @@ func CreateAnalysis(c *fiber.Ctx) error {
 	}
 
 	// Create analysis in database
-	if err := services.NewAnalysisService().CreateAnalysis(analysis); err != nil {
+	if err := services.NewAnalysisService().CreateAnalysis(analysis, file.Filename); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to create analysis"})
 	}
 
@@ -140,4 +140,53 @@ func DeleteAnalysis(c *fiber.Ctx) error {
 	}
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "Analysis deleted successfully"})
+}
+
+func UploadAnalysisFile(c *fiber.Ctx) error {
+	idStr := c.Params("id")
+	id := idStr
+
+	analysis, err := services.NewAnalysisService().GetAnalysis(id)
+	if err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Analysis not found"})
+	}
+
+	file, err := c.FormFile("file")
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "File upload is required"})
+	}
+
+	src, err := file.Open()
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to open file",
+		})
+	}
+	defer src.Close()
+
+	fileContent, err := io.ReadAll(src)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to read file",
+		})
+	}
+
+	fileStore := services.NewFileStoreService()
+	err = fileStore.UploadFile(fileContent, "documents", file.Filename)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": fmt.Sprintf("Failed to upload file: %v", err),
+		})
+	}
+
+	analysis.AnalysisFileId = file.Filename
+	analysis.UpdatedTimestamp = time.Now()
+	analysis.Status = models.Completed
+
+	if err := services.NewAnalysisService().UpdateAnalysis(id, analysis); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to update analysis"})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "Analysis file uploaded successfully"})
+
 }

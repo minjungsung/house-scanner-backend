@@ -20,7 +20,7 @@ func NewAnalysisRepository() *AnalysisRepository {
 	return &AnalysisRepository{db: db.Database("house_scanner")}
 }
 
-func (r *AnalysisRepository) CreateAnalysis(analysis *models.Analysis) error {
+func (r *AnalysisRepository) CreateAnalysis(analysis *models.Analysis, fileName string) error {
 	// Convert struct to bson.M, which will automatically omit empty fields
 	doc, err := bson.Marshal(analysis)
 	if err != nil {
@@ -40,6 +40,7 @@ func (r *AnalysisRepository) CreateAnalysis(analysis *models.Analysis) error {
 	// yyyyMMddHHmmss
 	bsonDoc["registerNumber"] = time.Now().Format("20060102150405")
 	bsonDoc["status"] = models.Pending
+	bsonDoc["requestFileId"] = fileName
 
 	_, err = r.db.Collection("analysis").InsertOne(context.Background(), bsonDoc)
 	return err
@@ -74,7 +75,14 @@ func (r *AnalysisRepository) UpdateAnalysis(id string, analysis *models.Analysis
 		return err
 	}
 
-	_, err = r.db.Collection("analysis").UpdateOne(context.Background(), bson.M{"_id": objectID}, bson.M{"$set": bsonDoc})
+	// Remove _id field from update document
+	delete(bsonDoc, "_id")
+
+	_, err = r.db.Collection("analysis").UpdateOne(
+		context.Background(),
+		bson.M{"_id": objectID},
+		bson.M{"$set": bsonDoc},
+	)
 	return err
 }
 

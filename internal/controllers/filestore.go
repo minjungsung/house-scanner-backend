@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"house-scanner-backend/internal/repositories"
 	"house-scanner-backend/internal/services"
 
 	"fmt"
@@ -30,7 +29,7 @@ func UploadFile(c *fiber.Ctx) error {
 	}
 
 	// Upload to Supabase Storage
-	err := services.NewFileStoreService(repositories.NewFileStoreRepository()).UploadFile(fileContent, "documents", fileName)
+	err := services.NewFileStoreService().UploadFile(fileContent, "documents", fileName)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": fmt.Sprintf("Failed to upload file: %v", err),
@@ -49,7 +48,7 @@ func GetFile(c *fiber.Ctx) error {
 	bucketName := c.Params("bucket")
 	filePath := c.Params("path")
 
-	file, err := services.NewFileStoreService(repositories.NewFileStoreRepository()).GetFile(bucketName, filePath)
+	file, err := services.NewFileStoreService().GetFile(bucketName, filePath)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to get file"})
 	}
@@ -61,7 +60,7 @@ func DeleteFile(c *fiber.Ctx) error {
 	bucketName := c.Params("bucket")
 	filePath := c.Params("path")
 
-	err := services.NewFileStoreService(repositories.NewFileStoreRepository()).DeleteFile(bucketName, filePath)
+	err := services.NewFileStoreService().DeleteFile(bucketName, filePath)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to delete file"})
 	}

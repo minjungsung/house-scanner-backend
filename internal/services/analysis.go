@@ -13,8 +13,8 @@ func NewAnalysisService() *AnalysisService {
 	return &AnalysisService{repo: repositories.NewAnalysisRepository()}
 }
 
-func (s *AnalysisService) CreateAnalysis(analysis *models.Analysis) error {
-	return s.repo.CreateAnalysis(analysis)
+func (s *AnalysisService) CreateAnalysis(analysis *models.Analysis, fileName string) error {
+	return s.repo.CreateAnalysis(analysis, fileName)
 }
 
 func (s *AnalysisService) GetAnalysis(id string) (*models.Analysis, error) {

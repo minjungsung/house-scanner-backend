@@ -38,6 +38,8 @@ func SetupRoutes(app *fiber.App) {
 	analysis.Post("/search", controllers.GetAnalyses)
 	analysis.Put("/:id", controllers.UpdateAnalysis)
 	analysis.Delete("/:id", controllers.DeleteAnalysis)
+	analysis.Post("/upload/:id", controllers.UploadAnalysisFile)
+
 
 	filestore := api.Group("/filestore")
 	filestore.Post("/upload", controllers.UploadFile)

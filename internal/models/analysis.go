@@ -8,6 +8,8 @@ type Analysis struct {
 	Phone            string         `json:"phone,omitempty" bson:"phone,omitempty"`
 	Email            string         `json:"email,omitempty" bson:"email,omitempty"`
 	Address          string         `json:"address,omitempty" bson:"address,omitempty"`
+	RequestFileId    string         `json:"requestFileId,omitempty" bson:"requestFileId,omitempty"`
+	AnalysisFileId   string         `json:"analysisFileId,omitempty" bson:"analysisFileId,omitempty"`
 	RequestType      string         `json:"requestType,omitempty" bson:"requestType,omitempty"`
 	RegisterNumber   string         `json:"registerNumber,omitempty" bson:"registerNumber,omitempty"`
 	Status           AnalysisStatus `json:"status,omitempty" bson:"status,omitempty"`
