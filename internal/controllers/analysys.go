@@ -6,9 +6,11 @@ import (
 
 	"fmt"
 	"io"
+	"log"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/websocket/v2"
 )
 
 type AnalysisHandler struct {
@@ -188,5 +190,54 @@ func UploadAnalysisFile(c *fiber.Ctx) error {
 	}
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "Analysis file uploaded successfully"})
+}
 
+// WebSocket connection handler for analysis updates
+func AnalysisWebSocket(c *websocket.Conn) {
+	analysisID := c.Params("id")
+	if analysisID == "" {
+		c.WriteJSON(fiber.Map{"error": "Analysis ID is required"})
+		return
+	}
+
+	// Create a channel to send updates to the WebSocket client
+	updates := make(chan *models.Analysis)
+	defer close(updates)
+
+	// Subscribe to analysis updates
+	analysisService := services.NewAnalysisService()
+	err := analysisService.SubscribeToAnalysisUpdates(analysisID, func(analysis *models.Analysis) {
+		updates <- analysis
+	})
+	if err != nil {
+		log.Printf("Error subscribing to analysis updates: %v", err)
+		c.WriteJSON(fiber.Map{"error": "Failed to subscribe to updates"})
+		return
+	}
+
+	// Start a goroutine to send updates to the WebSocket client
+	go func() {
+		for analysis := range updates {
+			if err := c.WriteJSON(analysis); err != nil {
+				log.Printf("Error sending update to WebSocket client: %v", err)
+				return
+			}
+		}
+	}()
+
+	// Keep the connection alive and handle client messages
+	for {
+		messageType, message, err := c.ReadMessage()
+		if err != nil {
+			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
+				log.Printf("WebSocket error: %v", err)
+			}
+			break
+		}
+
+		// Echo the message back (optional)
+		if messageType == websocket.TextMessage {
+			c.WriteMessage(messageType, message)
+		}
+	}
 }

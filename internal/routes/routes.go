@@ -4,9 +4,15 @@ import (
 	"house-scanner-backend/internal/controllers"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/websocket/v2"
 )
 
 func SetupRoutes(app *fiber.App) {
+	// WebSocket routes at root level
+	ws := app.Group("/ws")
+	ws.Get("/analysis/:id", websocket.New(controllers.AnalysisWebSocket))
+
+	// API routes
 	api := app.Group("/api")
 
 	post := api.Group("/posts")
@@ -40,10 +46,8 @@ func SetupRoutes(app *fiber.App) {
 	analysis.Delete("/:id", controllers.DeleteAnalysis)
 	analysis.Post("/upload/:id", controllers.UploadAnalysisFile)
 
-
 	filestore := api.Group("/filestore")
 	filestore.Post("/upload", controllers.UploadFile)
 	filestore.Get("/:id", controllers.GetFile)
 	filestore.Delete("/:id", controllers.DeleteFile)
-
 }
