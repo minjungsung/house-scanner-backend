@@ -46,9 +46,9 @@ func UploadFile(c *fiber.Ctx) error {
 
 func GetFile(c *fiber.Ctx) error {
 	bucketName := "documents"
-	filePath := c.Params("path")
+	fileId := c.Params("id")
 
-	file, err := services.NewFileStoreService().GetFile(bucketName, filePath)
+	file, err := services.NewFileStoreService().GetFile(bucketName, fileId)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to get file"})
 	}
@@ -58,9 +58,9 @@ func GetFile(c *fiber.Ctx) error {
 
 func DeleteFile(c *fiber.Ctx) error {
 	bucketName := "documents"
-	filePath := c.Params("path")
+	fileId := c.Params("id")
 
-	err := services.NewFileStoreService().DeleteFile(bucketName, filePath)
+	err := services.NewFileStoreService().DeleteFile(bucketName, fileId)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to delete file"})
 	}

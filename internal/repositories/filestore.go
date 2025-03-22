@@ -60,13 +60,18 @@ func (r *FileStoreRepository) UploadFile(fileContent []byte, bucketName string, 
 	return nil
 }
 
-func (r *FileStoreRepository) GetFile(bucketName string, filePath string) ([]byte, error) {
+func (r *FileStoreRepository) GetFile(bucketName string, fileId string) ([]byte, error) {
+	// Ensure fileId is not empty
+	if fileId == "" {
+		return nil, fmt.Errorf("file ID cannot be empty")
+	}
+
 	supabaseUrl := os.Getenv("SUPABASE_URL")
 	if !strings.HasPrefix(supabaseUrl, "https://") {
 		supabaseUrl = "https://" + supabaseUrl
 	}
 
-	url := fmt.Sprintf("%s/storage/v1/object/%s/%s", supabaseUrl, bucketName, filePath)
+	url := fmt.Sprintf("%s/storage/v1/object/%s/%s", supabaseUrl, bucketName, fileId)
 	fmt.Printf("Downloading from URL: %s\n", url)
 
 	// Create request
