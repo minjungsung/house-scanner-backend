@@ -45,7 +45,7 @@ func UploadFile(c *fiber.Ctx) error {
 }
 
 func GetFile(c *fiber.Ctx) error {
-	bucketName := c.Params("bucket")
+	bucketName := "documents"
 	filePath := c.Params("path")
 
 	file, err := services.NewFileStoreService().GetFile(bucketName, filePath)
@@ -57,7 +57,7 @@ func GetFile(c *fiber.Ctx) error {
 }
 
 func DeleteFile(c *fiber.Ctx) error {
-	bucketName := c.Params("bucket")
+	bucketName := "documents"
 	filePath := c.Params("path")
 
 	err := services.NewFileStoreService().DeleteFile(bucketName, filePath)

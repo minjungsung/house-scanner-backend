@@ -10,8 +10,8 @@ var supabaseClient *supabase.Client
 
 func GetSupabaseClient() *supabase.Client {
 	if supabaseClient == nil {
-		baseURL := os.Getenv("SUPABASE_API_URL")
-		apiKey := os.Getenv("SUPABASE_API_KEY")
+		baseURL := os.Getenv("SUPABASE_URL")
+		apiKey := os.Getenv("SUPABASE_KEY")
 
 		// Storage API URL 형식으로 변경
 		storageURL := baseURL + "/storage/v1"
