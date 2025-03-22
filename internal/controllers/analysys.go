@@ -95,7 +95,7 @@ func GetAnalysis(c *fiber.Ctx) error {
 
 func GetAnalyses(c *fiber.Ctx) error {
 	// should have name and phonenumber
-body := new(models.Analysis)
+	body := new(models.Analysis)
 	if err := c.BodyParser(body); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Cannot parse JSON"})
 	}

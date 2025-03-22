@@ -21,8 +21,6 @@ func (s *FileStoreService) GetFile(bucketName string, fileId string) ([]byte, er
 	return s.repo.GetFile(bucketName, fileId)
 }
 
-
-
 func (s *FileStoreService) DeleteFile(bucketName string, fileId string) error {
 	return s.repo.DeleteFile(bucketName, fileId)
 }
